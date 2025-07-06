@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .contenedor {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .titulo {
+            text-align: center;
+            color: white;
+            font-size: 2em;
+            margin-bottom: 30px;
+        }
+
+        .seccion-formulario {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .fila-formulario {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .grupo-formulario {
+            flex: 1;
+        }
+
+        .grupo-formulario label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .grupo-formulario textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            height: 60px;
+            resize: vertical;
+        }
+
+        .grupo-formulario textarea:focus {
+            outline: none;
+            border-color: #0984e3;
+        }
+
+        .boton {
+            background: #0984e3;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .boton:hover {
+            background: #0770c7;
+            transform: translateY(-2px);
+        }
+
+        .boton-eliminar-todo {
+            background: #e74c3c;
+        }
+
+        .boton-eliminar-todo:hover {
+            background: #c0392b;
+        }
+
+        .seccion-tarjetas {
+            margin-top: 30px;
+        }
+
+        .contador {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        .grilla-tarjetas {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .tarjeta {
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            perspective: 1000px;
+            min-height: 200px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .tarjeta:hover {
+            transform: translateY(-5px);
+        }
+
+        .tarjeta-interna {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            min-height: 200px;
+        }
+
+        .tarjeta.volteada .tarjeta-interna {
+            transform: rotateY(180deg);
+        }
+
+        .tarjeta-frente,
+        .tarjeta-atras {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
+
+        .tarjeta-frente {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+            color: white;
+        }
+
+        .tarjeta-atras {
+            background: linear-gradient(135deg, #00b894, #00a085);
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        .contenido-tarjeta {
+            font-size: 1.1em;
+            line-height: 1.5;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .etiqueta-tarjeta {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255,255,255,0.3);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .boton-eliminar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.3);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .boton-eliminar:hover {
+            background: rgba(255,0,0,0.8);
+        }
+
+        .sin-tarjetas {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            font-size: 1.2em;
+            padding: 60px 20px;
+        }
+
+        @media (max-width: 768px) {
+            .fila-formulario {
+                flex-direction: column;
+            }
+            
+            .grilla-tarjetas {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h1 class="titulo">Flashcards</h1>
+
+        <div class="seccion-formulario">
+            <h2>Crear Nueva Tarjeta</h2>
+            <div class="fila-formulario">
+                <div class="grupo-formulario">
+                    <label for="pregunta">Pregunta:</label>
+                    <textarea id="pregunta" placeholder="Escribe tu pregunta aquí..."></textarea>
+                </div>
+                <div class="grupo-formulario">
+                    <label for="respuesta">Respuesta:</label>
+                    <textarea id="respuesta" placeholder="Escribe la respuesta aquí..."></textarea>
+                </div>
+            </div>
+            <button class="boton" onclick="agregarTarjeta()">Agregar Tarjeta</button>
+            <button class="boton boton-eliminar-todo" onclick="eliminarTodas()">Eliminar Todas</button>
+        </div>
+
+        <div class="seccion-tarjetas">
+            <div class="contador" id="contadorTarjetas">0 tarjetas creadas</div>
+            <div class="grilla-tarjetas" id="grillaTarjetas">
+                <div class="sin-tarjetas">
+                    <p>¡No hay tarjetas aún!</p>
+                    <p>Crea tu primera tarjeta arriba.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tarjetas = [];
+        let contadorId = 0;
+
+        function agregarTarjeta() {
+            const campoPregunta = document.getElementById('pregunta');
+            const campoRespuesta = document.getElementById('respuesta');
+            
+            const pregunta = campoPregunta.value.trim();
+            const respuesta = campoRespuesta.value.trim();
+            
+            if (!pregunta || !respuesta) {
+                alert('Por favor, completa tanto la pregunta como la respuesta.');
+                return;
+            }
+            
+            const tarjeta = {
+                id: contadorId++,
+                pregunta: pregunta,
+                respuesta: respuesta
+            };
+            
+            tarjetas.push(tarjeta);
+            
+            campoPregunta.value = '';
+            campoRespuesta.value = '';
+            
+            mostrarTarjetas();
+        }
+
+        function mostrarTarjetas() {
+            const grilla = document.getElementById('grillaTarjetas');
+            const contador = document.getElementById('contadorTarjetas');
+            
+            grilla.innerHTML = '';
+            
+            contador.innerText = `${tarjetas.length} tarjeta${tarjetas.length !== 1 ? 's' : ''} creada${tarjetas.length !== 1 ? 's' : ''}`;
+            
+            if (tarjetas.length === 0) {
+                const sinTarjetas = document.createElement('div');
+                sinTarjetas.className = 'sin-tarjetas';
+                sinTarjetas.innerHTML = `
+                    <p>¡No hay tarjetas aún!</p>
+                    <p>Crea tu primera tarjeta arriba.</p>
+                `;
+                grilla.appendChild(sinTarjetas);
+                return;
+            }
+            
+            tarjetas.forEach(tarjeta => {
+                const elementoTarjeta = crearElementoTarjeta(tarjeta);
+                grilla.appendChild(elementoTarjeta);
+            });
+        }
+
+        function crearElementoTarjeta(tarjeta) {
+            const divTarjeta = document.createElement('div');
+            divTarjeta.className = 'tarjeta';
+            divTarjeta.setAttribute('data-id', tarjeta.id);
+            
+            const tarjetaInterna = document.createElement('div');
+            tarjetaInterna.className = 'tarjeta-interna';
+            
+            const tarjetaFrente = document.createElement('div');
+            tarjetaFrente.className = 'tarjeta-frente';
+            
+            const etiquetaFrente = document.createElement('div');
+            etiquetaFrente.className = 'etiqueta-tarjeta';
+            etiquetaFrente.innerText = 'PREGUNTA';
+            
+            const contenidoFrente = document.createElement('div');
+            contenidoFrente.className = 'contenido-tarjeta';
+            contenidoFrente.innerText = tarjeta.pregunta;
+            
+            const botonEliminar = document.createElement('button');
+            botonEliminar.className = 'boton-eliminar';
+            botonEliminar.innerHTML = '×';
+            botonEliminar.onclick = (e) => {
+                e.stopPropagation();
+                eliminarTarjeta(tarjeta.id);
+            };
+            
+            tarjetaFrente.appendChild(etiquetaFrente);
+            tarjetaFrente.appendChild(contenidoFrente);
+            tarjetaFrente.appendChild(botonEliminar);
+            
+            const tarjetaAtras = document.createElement('div');
+            tarjetaAtras.className = 'tarjeta-atras';
+            
+            const etiquetaAtras = document.createElement('div');
+            etiquetaAtras.className = 'etiqueta-tarjeta';
+            etiquetaAtras.innerText = 'RESPUESTA';
+            
+            const contenidoAtras = document.createElement('div');
+            contenidoAtras.className = 'contenido-tarjeta';
+            contenidoAtras.innerText = tarjeta.respuesta;
+            
+            const botonEliminar2 = document.createElement('button');
+            botonEliminar2.className = 'boton-eliminar';
+            botonEliminar2.innerHTML = '×';
+            botonEliminar2.onclick = (e) => {
+                e.stopPropagation();
+                eliminarTarjeta(tarjeta.id);
+            };
+            
+            tarjetaAtras.appendChild(etiquetaAtras);
+            tarjetaAtras.appendChild(contenidoAtras);
+            tarjetaAtras.appendChild(botonEliminar2);
+            
+            tarjetaInterna.appendChild(tarjetaFrente);
+            tarjetaInterna.appendChild(tarjetaAtras);
+            divTarjeta.appendChild(tarjetaInterna);
+            
+            divTarjeta.addEventListener('click', () => {
+                divTarjeta.classList.toggle('volteada');
+            });
+            
+            return divTarjeta;
+        }
+
+        function eliminarTarjeta(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta tarjeta?')) {
+                tarjetas = tarjetas.filter(tarjeta => tarjeta.id !== id);
+                mostrarTarjetas();
+            }
+        }
+
+        function eliminarTodas() {
+            if (tarjetas.length === 0) {
+                alert('No hay tarjetas para eliminar.');
+                return;
+            }
+            
+            if (confirm('¿Estás seguro de que quieres eliminar todas las tarjetas?')) {
+                tarjetas = [];
+                mostrarTarjetas();
+            }
+        }
+
+        mostrarTarjetas();
+    </script>
+</body>
+</html>
